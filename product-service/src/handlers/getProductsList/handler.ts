@@ -8,17 +8,26 @@ export const getProductsList: APIGatewayProxyHandler = async () => {
     if (!products) {
       return {
         statusCode: 404,
+        headers: {
+          'Access-Control-Allow-Origin': '*'
+        },
         body: JSON.stringify('Products are not found')
       };
     }
 
     return {
       statusCode: 200, 
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify(products)
     };
   } catch (error) {
     return {
       statusCode: 500, 
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      },
       body: JSON.stringify(error),
     };
   }
