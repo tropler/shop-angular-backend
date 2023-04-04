@@ -1,0 +1,42 @@
+service: product-service
+
+plugins:
+  - serverless-functions-base-path
+  - serverless-webpack
+
+frameworkVersion: '3.29'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: us-east-1
+  apiName: products-api
+
+custom:
+  functionsBasePath: src/handlers
+  webpack:
+    webpackConfig: "./webpack.config.js"
+    includeModules: true
+    keepOutputDirectory: true
+  documentation:
+    version: '1'
+    title: 'Product Service APO'
+    description: 'This is Product Service API'
+    models: {}
+
+functions:
+  getProductsList:
+    handler: getProductsList/handler.getProductsList
+    events:
+      - http:
+          path: products
+          method: get
+          cors: true
+
+  getProductById:
+    handler: getProductsById/handler.getProductsById
+    events:
+      - http:
+          path: products/{id}
+          method: get
+          cors: true
