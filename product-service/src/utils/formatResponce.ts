@@ -1,4 +1,4 @@
-export function formatResponse(statusCode: number, body) {
+export const formatResponse = <T>(statusCode: number, body: T) => {
     return {
         statusCode: statusCode,
         headers: {

@@ -1,9 +1,11 @@
-export const productsMocks = [
+import { Product } from "../models/product";
+
+export const productsMocks: Product[] = [
     {
        count : 4,
        description :  "Short Product Description1" ,
        id : "1",
-       price : 2.4,
+       price : 3,
        title :  "ProductOne"
     },
     {

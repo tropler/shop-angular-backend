@@ -1,10 +1,20 @@
 import { APIGatewayProxyHandler } from "aws-lambda";
-import { productsMocks } from "../../mocks/products";
+import { scan } from "../../dynamoDB";
 import { formatResponse } from "../../utils/formatResponce";
 
 export const getProductsList: APIGatewayProxyHandler = async () => {
   try {
-    const products = await Promise.resolve(productsMocks);
+
+    const [productsTable, stocksTable] = await Promise.all([scan('products'), scan('stocks')]);
+
+
+    const products = productsTable.map((product) => {
+      const productCount = stocksTable.find(stock => product.id === stock.product_id ).count;
+      
+      return { 
+        ...product, 
+        count: productCount};
+    });
 
     if (!products) {
       return formatResponse(404, 'Products are not found');
