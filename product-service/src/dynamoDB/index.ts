@@ -1,6 +1,6 @@
 import { DynamoDB } from 'aws-sdk';
 
-export const dynamo = new DynamoDB.DocumentClient();
+export const dynamo = new DynamoDB.DocumentClient({ region: 'eu-west-1' });
 
 export const scan = async (tableName: string) => {
     const scanResults = await dynamo.scan({

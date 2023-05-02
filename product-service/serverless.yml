@@ -14,6 +14,16 @@ provider:
   iamRoleStatements:
     - Effect: Allow
       Action:
+        - sqs:*
+      Resource:
+        Fn::GetAtt: [catalogQueue, Arn]
+    - Effect: Allow
+      Action:
+        - sns:Publish
+      Resource:
+        Ref: createProductTopic
+    - Effect: Allow
+      Action:
         - dynamodb:DescribeTable
         - dynamodb:Query
         - dynamodb:Scan
@@ -25,6 +35,24 @@ provider:
         - '${self:custom.arnTablePath}/products'
         - '${self:custom.arnTablePath}/stocks'
 
+resources:
+  Resources:
+    catalogQueue:
+      Type: 'AWS::SQS::Queue'
+      Properties:
+        QueueName: catalogQueue
+
+    createProductTopic:
+      Type: 'AWS::SNS::Topic'
+      Properties:
+        TopicName: createProductTopic
+
+    emailSubscription:
+      Type: 'AWS::SNS::Subscription'
+      Properties:
+        Endpoint: texet1711@gmail.com
+        Protocol: email
+        TopicArn: {'Ref': 'createProductTopic'}
 
 custom:
   functionsBasePath: src/handlers
@@ -47,7 +75,6 @@ functions:
           path: products
           method: get
           cors: true
-
   getProductById:
     handler: getProductsById/handler.getProductsById
     events:
@@ -62,3 +89,10 @@ functions:
           path: products
           method: post
           cors: true
+  catalogBatchProcess:
+    handler: catalogBatchProcess/handler.catalogBatchProcess
+    events:
+      - sqs:
+          batchSize: 5
+          arn:
+            Fn::GetAtt: [catalogQueue, Arn]

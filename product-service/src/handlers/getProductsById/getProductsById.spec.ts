@@ -29,6 +29,9 @@ describe('#getProductsById', () => {
 
         const expectedResult = {
             statusCode: 404,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+            },
             body: JSON.stringify('Product not found'),
         };
 
@@ -42,6 +45,9 @@ describe('#getProductsById', () => {
 
         const expectedResult = {
             statusCode: 500,
+            headers: {
+                "Access-Control-Allow-Origin": "*",
+            },
             body: JSON.stringify({}),
         };
 

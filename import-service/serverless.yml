@@ -15,7 +15,10 @@ provider:
 
   iamRoleStatements:
     - Effect: Allow
-      Action: "s3:ListBucket"
+      Action:
+        - "s3:ListBucket"
+        - "s3:PutObject"
+        - "s3:DeleteObject"
       Resource:
         - "arn:aws:s3:::upload-products"
     - Effect: Allow
@@ -23,6 +26,10 @@ provider:
         - "s3:*"
       Resource:
         - "arn:aws:s3:::upload-products/*"
+    - Effect: "Allow"
+      Action:
+        - "sqs:SendMessage"
+      Resource: "arn:aws:sqs:${self:provider.region}:*:catalogQueue"
 
 custom:
   functionsBasePath: src/handlers

@@ -1,12 +1,16 @@
 import {S3} from "aws-sdk";
 import {Handler} from "aws-lambda";
 import * as csvParser from "csv-parser";
-import { BUCKET_NAME } from "../../constants/constant";
+import { BUCKET_NAME, SQS_URL } from "../../constants/constant";
+import { SQSClient, SendMessageCommand } from "@aws-sdk/client-sqs";
+import { formatResponse } from "../../utils/formatResponce";
 
 export const importFileParser: Handler = async (event) => {
   try {
+    const sqsClient = new SQSClient({region: 'eu-west-1'})
     const s3 = new S3();
-    
+    const results = [];
+
     for (const record of event.Records) {
       const objectKey = record.s3.object.key;
       if (objectKey) {
@@ -17,7 +21,7 @@ export const importFileParser: Handler = async (event) => {
 
         const parse = (stream) =>
             new Promise((_resolve, reject) => {
-              stream.on("data", (data) => console.log("Record:", data));
+              stream.on("data", (data) => results.push(data));
               stream.on("error", (error) => {
                 console.log(error);
                 reject();
@@ -38,13 +42,23 @@ export const importFileParser: Handler = async (event) => {
                 }
               });
             });
+            
+        results.map((item) => {
+          sqsClient.send(
+            new SendMessageCommand({
+              MessageBody: JSON.stringify(item),
+              QueueUrl: SQS_URL
+            })
+          );
+        });
 
         const s3Stream = s3.getObject(params).createReadStream();
 
         await parse(s3Stream.pipe(csvParser()));
       }
     }
+    return formatResponse(200);
   } catch (err) {
-    console.log('Something went wrong!')
+    return formatResponse(500, err);
   }
 };
