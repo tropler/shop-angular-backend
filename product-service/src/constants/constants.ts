@@ -1,0 +1,1 @@
+export const SNS_TOPIC_ARN = 'arn:aws:sns:eu-west-1:817322011680:createProductTopic';

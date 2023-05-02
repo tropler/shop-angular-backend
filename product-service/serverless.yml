@@ -1,0 +1,98 @@
+service: product-service
+
+plugins:
+  - serverless-functions-base-path
+  - serverless-webpack
+
+frameworkVersion: '3.29'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: eu-west-1
+  apiName: products-api
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - sqs:*
+      Resource:
+        Fn::GetAtt: [catalogQueue, Arn]
+    - Effect: Allow
+      Action:
+        - sns:Publish
+      Resource:
+        Ref: createProductTopic
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:Scan
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - '${self:custom.arnTablePath}/products'
+        - '${self:custom.arnTablePath}/stocks'
+
+resources:
+  Resources:
+    catalogQueue:
+      Type: 'AWS::SQS::Queue'
+      Properties:
+        QueueName: catalogQueue
+
+    createProductTopic:
+      Type: 'AWS::SNS::Topic'
+      Properties:
+        TopicName: createProductTopic
+
+    emailSubscription:
+      Type: 'AWS::SNS::Subscription'
+      Properties:
+        Endpoint: texet1711@gmail.com
+        Protocol: email
+        TopicArn: {'Ref': 'createProductTopic'}
+
+custom:
+  functionsBasePath: src/handlers
+  arnTablePath: arn:aws:dynamodb:eu-west-1:817322011680:table
+  webpack:
+    webpackConfig: "./webpack.config.js"
+    includeModules: true
+    keepOutputDirectory: true
+  documentation:
+    version: '1'
+    title: 'Product Service APO'
+    description: 'This is Product Service API'
+    models: {}
+
+functions:
+  getProductsList:
+    handler: getProductsList/handler.getProductsList
+    events:
+      - http:
+          path: products
+          method: get
+          cors: true
+  getProductById:
+    handler: getProductsById/handler.getProductsById
+    events:
+      - http:
+          path: products/{id}
+          method: get
+          cors: true
+  createProduct:
+    handler: createProduct/handler.createProduct
+    events:
+     - http:
+          path: products
+          method: post
+          cors: true
+  catalogBatchProcess:
+    handler: catalogBatchProcess/handler.catalogBatchProcess
+    events:
+      - sqs:
+          batchSize: 5
+          arn:
+            Fn::GetAtt: [catalogQueue, Arn]

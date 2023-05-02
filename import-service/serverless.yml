@@ -1,0 +1,57 @@
+service: import-service
+
+plugins:
+  - serverless-s3-deploy
+  - serverless-functions-base-path
+  - serverless-webpack
+
+frameworkVersion: '3.25'
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: eu-west-1
+  apiName: imports-api
+
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - "s3:ListBucket"
+        - "s3:PutObject"
+        - "s3:DeleteObject"
+      Resource:
+        - "arn:aws:s3:::upload-products"
+    - Effect: Allow
+      Action:
+        - "s3:*"
+      Resource:
+        - "arn:aws:s3:::upload-products/*"
+    - Effect: "Allow"
+      Action:
+        - "sqs:SendMessage"
+      Resource: "arn:aws:sqs:${self:provider.region}:*:catalogQueue"
+
+custom:
+  functionsBasePath: src/handlers
+  webpack:
+    webpackConfig: "./webpack.config.js"
+    includeModules: true
+    keepOutputDirectory: true
+
+functions:
+  importProductsFile:
+    handler: importProductsFile/handler.importProductsFile
+    events:
+      - http:
+          path: /import
+          method: get
+
+  importFileParser:
+    handler: importFileParser/handler.importFileParser
+    events:
+      - s3:
+          bucket: upload-products
+          event: s3:ObjectCreated:*
+          rules:
+            - prefix: uploaded/
+          existing: true
