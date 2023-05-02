@@ -4,7 +4,7 @@ import {importProductsFile} from './handler'
 import { APIGatewayProxyEvent } from 'aws-lambda'
 import { formatResponse } from '../../utils/formatResponce'
 
-AWS.mock('S3', 'getSignedUrl', function (method, params, callback) {
+AWS.mock('S3', 'getSignedUrl', function (_method, _never, callback) {
     callback(null, 'https://aws:s3:test.csv');
 })
 
