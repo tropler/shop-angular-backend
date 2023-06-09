@@ -1,0 +1,36 @@
+service: authorization-service
+
+provider:
+  name: aws
+  runtime: nodejs18.x
+  region: eu-west-1
+  functionsBasePath: src/handlers
+  httpApi:
+    cors: true
+  iam:
+    role:
+      name: authLambda
+      statements:
+        - Effect: Allow
+          Action:
+            - execute-api:Invoke
+          Resource: "*"
+
+plugins:
+  - serverless-webpack
+  - serverless-dotenv-plugin
+  - serverless-functions-base-path
+
+custom:
+  webpack:
+    webpackConfig: "./webpack.config.js"
+    includeModules: true
+    keepOutputDirectory: true
+
+functions:
+  BasicAuthorizer:
+    handler: src/handlers/basicAuthorizer/handler.basicAuthorizer
+    events:
+      - httpApi:
+          path: /
+          method: GET

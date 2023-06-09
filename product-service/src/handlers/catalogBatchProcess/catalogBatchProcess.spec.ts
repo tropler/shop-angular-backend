@@ -1,4 +1,3 @@
-import * as AWS from "aws-sdk-mock";
 import { createItem } from "../../dynamoDB";
 import { catalogBatchProcess } from "./handler";
 

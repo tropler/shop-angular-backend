@@ -12,7 +12,17 @@ provider:
   runtime: nodejs18.x
   region: eu-west-1
   apiName: imports-api
-
+  httpApi:
+    cors: true
+    authorizers:
+      httpApiRequestAuthorizer:
+        name: 'httpApiRequestAuthorizer'
+        functionArn: arn:aws:lambda:eu-west-1:817322011680:function:authorization-service-dev-BasicAuthorizer
+        type: 'request'
+        enableSimpleResponses: true
+        payloadVersion: '2.0'
+        identitySource:
+          - $request.header.Authorization
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -42,9 +52,10 @@ functions:
   importProductsFile:
     handler: importProductsFile/handler.importProductsFile
     events:
-      - http:
+      - httpApi:
           path: /import
           method: get
+          authorizer: httpApiRequestAuthorizer
 
   importFileParser:
     handler: importFileParser/handler.importFileParser

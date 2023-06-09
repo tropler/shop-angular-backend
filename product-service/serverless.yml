@@ -11,6 +11,17 @@ provider:
   runtime: nodejs18.x
   region: eu-west-1
   apiName: products-api
+  httpApi:
+    cors: true
+    authorizers:
+      httpApiRequestAuthorizer:
+        name: 'httpApiRequestAuthorizer'
+        functionArn: arn:aws:lambda:eu-west-1:817322011680:function:authorization-service-dev-BasicAuthorizer
+        type: 'request'
+        enableSimpleResponses: true
+        payloadVersion: '2.0'
+        identitySource:
+          - $request.header.Authorization
   iamRoleStatements:
     - Effect: Allow
       Action:
@@ -22,6 +33,10 @@ provider:
         - sns:Publish
       Resource:
         Ref: createProductTopic
+    - Effect: Allow
+      Action:
+        - lambda:invokeFunction
+      Resource: "*"
     - Effect: Allow
       Action:
         - dynamodb:DescribeTable
@@ -71,24 +86,30 @@ functions:
   getProductsList:
     handler: getProductsList/handler.getProductsList
     events:
-      - http:
-          path: products
-          method: get
+      - httpApi:
           cors: true
+          path: /products
+          method: get
+          authorizer:
+            name: httpApiRequestAuthorizer
   getProductById:
     handler: getProductsById/handler.getProductsById
     events:
-      - http:
-          path: products/{id}
-          method: get
+      - httpApi:
           cors: true
+          path: /products/{id}
+          method: get
+          authorizer:
+            name: httpApiRequestAuthorizer
   createProduct:
     handler: createProduct/handler.createProduct
     events:
-     - http:
-          path: products
-          method: post
+     - httpApi:
           cors: true
+          path: /products
+          method: post
+          authorizer:
+            name: httpApiRequestAuthorizer
   catalogBatchProcess:
     handler: catalogBatchProcess/handler.catalogBatchProcess
     events:
